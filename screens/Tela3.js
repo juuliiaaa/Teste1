@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
-import { auth } from '../FirebaseConfig';
+import { auth } from '../firebase.config';
 import { getAuth } from 'firebase/auth';
 
 export default function Tela3() {

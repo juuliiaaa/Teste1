@@ -12,7 +12,7 @@ import Tela3 from "./screens/Tela3";
 import {NavigationContainer} from '@react-navigation/native'
 import BottomTabs_Tela2 from "./navigation/BottomTabs_Tela2";
 import Drawer_Tela3 from "./navigation/Drawer_Tela3";
-s
+
 // Import das libs de navegação - Stack
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 
