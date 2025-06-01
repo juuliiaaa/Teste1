@@ -16,6 +16,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 // Import lib de icons
 import { Ionicons } from "@expo/vector-icons";
+import Perfil from "./screens/Perfil";
 
 export default function App() {
   const Stack = createNativeStackNavigator();
@@ -34,7 +35,7 @@ export default function App() {
         />
         <Stack.Screen
           name="Perfil"
-          options={(title = "Perfil do Usuário")}
+          options={{ title: "Perfil do Usuário" }}
           component={Perfil}
         />
       </Stack.Navigator>
