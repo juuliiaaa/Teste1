@@ -4,14 +4,13 @@ import { SafeAreaProvider, SafeAreaView   } from 'react-native-safe-area-context
 
 
 // Import das telas
-import Login from "./screens/Login";
-import Tela2 from "./screens/Tela2";
-import Tela3 from "./screens/Tela3";
+import Login from './screens/Login';
+import HomeScreen from './screens/HomeScreen';
 
 // Import das Navegações
 import {NavigationContainer} from '@react-navigation/native'
-import BottomTabs_Tela2 from "./navigation/BottomTabs_Tela2";
-import Drawer_Tela3 from "./navigation/Drawer_Tela3";
+//import BottomTabs_Tela2 from "./navigation/BottomTabs_Tela2";
+//import Drawer_Tela3 from "./navigation/Drawer_Tela3";
 
 // Import das libs de navegação - Stack
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
@@ -34,16 +33,10 @@ export default function App() {
         component={Login} 
         />
         <Stack.Screen 
-        name='Nav-Tela2' 
+        name='HomeScreen' 
         options={title="Tela inicial"}
-        component={BottomTabs_Tela2} 
+        component={HomeScreen} 
         />
-        <Stack.Screen 
-        name='Nav-Tela3' 
-        options={title="Sobre"}
-        component={Drawer_Tela3} 
-        />
-      
       </Stack.Navigator>
     </NavigationContainer>
   );
