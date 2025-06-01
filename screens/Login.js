@@ -119,7 +119,7 @@ export default function Login({ navigation }) {
     const registry = async () => {
         try {
             await createUserWithEmailAndPassword(auth, email, senha);
-            Alert.alert("Sucesso", "UsuÃ¡rio registrado com sucesso!");
+            Alert.alert("Sucesso", "Usuário registrado com sucesso!");
             navigation.navigate('HomeScreen'); 
         } catch (error) {
             Alert.alert("Erro", "Falha no registro: " + error.message);
