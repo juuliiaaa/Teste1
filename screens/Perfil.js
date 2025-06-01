@@ -1,73 +1,54 @@
-// screens/HomeScreen.js
+// screens/Profile.js
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  FlatList,
-  Image,
-  StyleSheet,
-  Pressable,
-  Text,
-} from "react-native";
-import { db } from "../firebase.config";
-import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import { View, Text, StyleSheet, Pressable, Alert } from "react-native";
+import { auth } from "../firebase.config";
+import { signOut } from "firebase/auth";
 
-const HomeScreen = ({ navigation }) => {
-  const [posts, setPosts] = useState([]);
+const Profile = ({ navigation }) => {
+  const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
-    const postsRef = collection(db, "posts");
-    const q = query(postsRef, orderBy("createdAt", "desc"));
-
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const postsList = [];
-      querySnapshot.forEach((doc) => {
-        postsList.push({ id: doc.id, ...doc.data() });
-      });
-      setPosts(postsList);
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setUserEmail(user.email);
+      } else {
+        setUserEmail("Nenhum usuário logado");
+      }
     });
-
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
 
-  const renderItem = ({ item }) => (
-    <Pressable
-      style={styles.postContainer}
-      onPress={() => navigation.navigate("ImageDetail", { post: item })}
-    >
-      <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
-      <Text style={styles.postText}>IMAGEM POSTADA</Text>
-      <Text style={styles.postText}>POR: {item.userEmail}</Text>
-    </Pressable>
-  );
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigation.navigate("Login");
+    } catch (error) {
+      Alert.alert("Erro ao fazer logout", error.message);
+    }
+  };
 
   return (
     <View style={styles.container}>
       {/* Título da tela */}
       <View style={styles.header}>
-        <Text style={styles.title}>PIXIE</Text>
+        <Text style={styles.title}>Meu Perfil</Text>
       </View>
 
-      {/* Grid de imagens */}
-      {posts.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Nenhuma postagem ainda</Text>
-          <Text style={styles.emptyText}>Seja o primeiro a postar!</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={posts}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          contentContainerStyle={styles.list}
-        />
-      )}
+      <View style={styles.profileContent}>
+        <Text style={styles.profileText}>
+          Bem-vindo, {userEmail || "Carregando..."}
+        </Text>
+        <Pressable style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>Sair</Text>
+        </Pressable>
+        {/* Você pode adicionar mais informações do perfil aqui */}
+      </View>
 
       {/* Barra de navegação inferior */}
       <View style={styles.bottomNav}>
         <Pressable
           style={styles.navButton}
-          onPress={() => navigation.navigate("Home")}
+          onPress={() => navigation.navigate("HomeScreen")}
         >
           <Text style={styles.navButtonText}>🏠</Text>
           <Text style={styles.navButtonLabel}>Home</Text>
@@ -75,7 +56,7 @@ const HomeScreen = ({ navigation }) => {
 
         <Pressable
           style={styles.navButton}
-          onPress={() => navigation.navigate("NewPost")}
+          onPress={() => navigation.navigate("NewPost")} // Certifique-se de ter uma tela "NewPost"
         >
           <Text style={[styles.navButtonText, styles.plusButton]}>+</Text>
           <Text style={styles.navButtonLabel}>Nova Postagem</Text>
@@ -117,40 +98,29 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#fff",
   },
-  emptyContainer: {
+  profileContent: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    padding: 20,
   },
-  emptyText: {
-    fontSize: 18,
+  profileText: {
+    fontSize: 20,
     color: "#861f66",
-    marginBottom: 10,
-  },
-  list: {
-    padding: 10,
-    paddingBottom: 70, // Espaço para a barra inferior
-  },
-  postContainer: {
-    flex: 1,
-    margin: 5,
-    alignItems: "center",
-    backgroundColor: "#f0f0f0",
-    borderRadius: 8,
-    padding: 10,
-    maxWidth: "50%",
-  },
-  postImage: {
-    width: "100%",
-    aspectRatio: 1,
-    borderRadius: 4,
-    marginBottom: 8,
-  },
-  postText: {
-    fontSize: 12,
-    color: "#861f66",
+    marginBottom: 20,
+    fontWeight: "bold",
     textAlign: "center",
-    fontWeight: "500",
+  },
+  logoutButton: {
+    backgroundColor: "#f8ad98",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  logoutButtonText: {
+    color: "#861f66",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   bottomNav: {
     position: "absolute",
@@ -186,4 +156,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeScreen;
+export default Profile;
