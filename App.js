@@ -17,28 +17,31 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack'
 
 // Import lib de icons
 import {Ionicons} from '@expo/vector-icons';
+import { AuthProvider } from './context/auth/AuthProvider';
 
 export default function App() {
 
   const Stack = createNativeStackNavigator();
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName='Login'
-        screenOptions={{ headerShown: false }}
-      >
-      <Stack.Screen 
-        name='Login' 
-        component={Login} 
-        />
-        <Stack.Screen 
-        name='HomeScreen' 
-        options={title="Tela inicial"}
-        component={HomeScreen} 
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <AuthProvider>
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName='Login'
+          screenOptions={{ headerShown: false }}
+        >
+          <Stack.Screen 
+          name='Login' 
+          component={Login} 
+          />
+          <Stack.Screen 
+          name='HomeScreen' 
+          options={title="Tela inicial"}
+          component={HomeScreen} 
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </AuthProvider>
   );
 
 }

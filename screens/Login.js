@@ -107,14 +107,24 @@
 
 
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, Alert, Image } from "react-native";
 import { auth } from "../firebase.config";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 
 export default function Login({ navigation }) {
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
+
+    useEffect(() => { 
+        const checkLogin = onAuthStateChanged(auth, (user) => {
+            if(user) {
+                // Usuário já está logado
+                navigation.replace('HomeScreen');
+            }
+        });
+        return checkLogin;
+    }, []);
 
     const registry = async () => {
         try {
