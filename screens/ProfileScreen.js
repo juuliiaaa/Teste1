@@ -119,55 +119,6 @@ export default function ProfileScreen() {
     </View>
   );
 
-  const DrawerMenu = () => (
-    <Modal
-      visible={drawerVisible}
-      transparent={true}
-      animationType="none"
-      onRequestClose={() => setDrawerVisible(false)}
-    >
-      <View style={styles.drawerOverlay}>
-        <TouchableOpacity 
-          style={styles.drawerBackdrop}
-          activeOpacity={1}
-          onPress={() => setDrawerVisible(false)}
-        />
-        <View style={styles.drawerContainer}>
-          <View style={styles.drawerHeader}>
-            <Text style={styles.drawerTitle}>Menu</Text>
-            <TouchableOpacity onPress={() => setDrawerVisible(false)}>
-              <Ionicons name="close" size={24} color="#861f66" />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.drawerContent}>
-            <TouchableOpacity style={styles.drawerItem}>
-              <Ionicons name="settings-outline" size={20} color="#861f66" />
-              <Text style={styles.drawerItemText}>Configurações</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.drawerItem}>
-              <Ionicons name="help-circle-outline" size={20} color="#861f66" />
-              <Text style={styles.drawerItemText}>Ajuda</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.drawerItem}>
-              <Ionicons name="information-circle-outline" size={20} color="#861f66" />
-              <Text style={styles.drawerItemText}>Sobre</Text>
-            </TouchableOpacity>
-
-            <View style={styles.drawerDivider} />
-
-            <TouchableOpacity style={styles.drawerItem} onPress={handleLogout}>
-              <Ionicons name="log-out-outline" size={20} color="#d32f2f" />
-              <Text style={[styles.drawerItemText, { color: '#d32f2f' }]}>Sair da Conta</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-
   return (
     <View style={styles.container}>
       {/* Header */}
