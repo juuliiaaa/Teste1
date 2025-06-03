@@ -5,6 +5,7 @@ import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 
 const HomeScreen = ({ navigation }) => {
   const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const postsRef = collection(db, "posts");
@@ -16,71 +17,58 @@ const HomeScreen = ({ navigation }) => {
         postsList.push({ id: doc.id, ...doc.data() });
       });
       setPosts(postsList);
+      setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
   const renderItem = ({ item }) => (
-    <Pressable
-      style={styles.postContainer}
-      onPress={() => navigation.navigate("ImageDetail", { post: item })}
-    >
+    <View style={styles.postContainer}>
+      <View style={styles.postHeader}>
+        <Text style={styles.userEmail}>{item.userEmail}</Text>
+      </View>
+      
       <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
-      <Text style={styles.postText}>IMAGEM POSTADA</Text>
-      <Text style={styles.postText}>POR: {item.userEmail}</Text>
-    </Pressable>
+      
+      {item.caption && (
+        <View style={styles.captionContainer}>
+          <Text style={styles.captionText}>{item.caption}</Text>
+        </View>
+      )}
+      
+      <View style={styles.postFooter}>
+        <Text style={styles.timeText}>
+          {item.createdAt?.toDate?.()?.toLocaleDateString('pt-BR') || 'Agora'}
+        </Text>
+      </View>
+    </View>
+  );
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyIcon}>📸</Text>
+      <Text style={styles.emptyTitle}>Nenhuma postagem ainda</Text>
+      <Text style={styles.emptyText}>Seja o primeiro a compartilhar uma foto!</Text>
+    </View>
   );
 
   return (
     <View style={styles.container}>
-      {/* Título da tela */}
+      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>PIXIE</Text>
       </View>
 
-      {/* Grid de imagens */}
-      {posts.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Nenhuma postagem ainda</Text>
-          <Text style={styles.emptyText}>Seja o primeiro a postar!</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={posts}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          contentContainerStyle={styles.list}
-        />
-      )}
-
-      {/* Barra de navegação inferior */}
-      <View style={styles.bottomNav}>
-        <Pressable
-          style={styles.navButton}
-          onPress={() => navigation.navigate("Home")}
-        >
-          <Text style={styles.navButtonText}>🏠</Text>
-          <Text style={styles.navButtonLabel}>Home</Text>
-        </Pressable>
-
-        <Pressable
-          style={styles.navButton}
-          onPress={() => navigation.navigate("NewPost")}
-        >
-          <Text style={[styles.navButtonText, styles.plusButton]}>+</Text>
-          <Text style={styles.navButtonLabel}>Nova Postagem</Text>
-        </Pressable>
-
-        <Pressable
-          style={styles.navButton}
-          onPress={() => navigation.navigate("Profile")}
-        >
-          <Text style={styles.navButtonText}>👤</Text>
-          <Text style={styles.navButtonLabel}>Perfil</Text>
-        </Pressable>
-      </View>
+      {/* Feed de posts */}
+      <FlatList
+        data={posts}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        ListEmptyComponent={!loading ? renderEmptyState : null}
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 };
@@ -95,86 +83,82 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: "center",
     justifyContent: "center",
-    borderBottomLeftRadius: 15,
-    borderBottomRightRadius: 15,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    marginBottom: 10,
   },
   title: {
     fontSize: 22,
     fontWeight: "bold",
     color: "#fff",
   },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyText: {
-    fontSize: 18,
-    color: "#861f66",
-    marginBottom: 10,
-  },
   list: {
-    padding: 10,
-    paddingBottom: 70, // Espaço para a barra inferior
+    paddingBottom: 20,
   },
   postContainer: {
-    flex: 1,
-    margin: 5,
+    backgroundColor: "#fff",
+    marginBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  postHeader: {
+    flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f0f0f0",
-    borderRadius: 8,
-    padding: 10,
-    maxWidth: "50%",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+  },
+  userEmail: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#861f66",
   },
   postImage: {
     width: "100%",
     aspectRatio: 1,
-    borderRadius: 4,
-    marginBottom: 8,
+    backgroundColor: "#f0f0f0",
   },
-  postText: {
-    fontSize: 12,
-    color: "#861f66",
-    textAlign: "center",
-    fontWeight: "500",
-  },
-  bottomNav: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    backgroundColor: "#f8ad98",
-    borderTopWidth: 1,
-    borderTopColor: "#861f66",
+  captionContainer: {
+    paddingHorizontal: 15,
     paddingVertical: 10,
-    paddingHorizontal: 5,
   },
-  navButton: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: "30%",
+  captionText: {
+    fontSize: 14,
+    color: "#333",
+    lineHeight: 18,
   },
-  navButtonText: {
-    fontSize: 24,
-    color: "#861f66",
-    marginBottom: 5,
+  postFooter: {
+    paddingHorizontal: 15,
+    paddingBottom: 10,
   },
-  plusButton: {
-    fontSize: 36,
-    fontWeight: "bold",
-  },
-  navButtonLabel: {
+  timeText: {
     fontSize: 12,
+    color: "#999",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 40,
+    paddingTop: 100,
+  },
+  emptyIcon: {
+    fontSize: 64,
+    marginBottom: 20,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
     color: "#861f66",
-    fontWeight: "500",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    lineHeight: 22,
   },
 });
 
