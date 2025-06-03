@@ -48,7 +48,6 @@ export default function ProfileScreen() {
   }, [user]);
 
   const handleLogout = () => {
-    setDrawerVisible(false); // Fecha o drawer primeiro
     Alert.alert(
       'Sair da conta',
       'Tem certeza que deseja sair da sua conta?',
@@ -62,12 +61,10 @@ export default function ProfileScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              console.log('Tentando fazer logout...');
               await signOut(auth);
-              console.log('Logout realizado com sucesso');
+              setDrawerVisible(false);
             } catch (error) {
-              console.error('Erro no logout:', error);
-              Alert.alert('Erro', 'Falha ao sair da conta: ' + error.message);
+              Alert.alert('Erro', 'Falha ao sair da conta');
             }
           },
         },
@@ -117,6 +114,55 @@ export default function ProfileScreen() {
       <Text style={styles.emptyText}>Você ainda não fez nenhuma publicação</Text>
       <Text style={styles.emptySubtext}>Suas fotos aparecerão aqui</Text>
     </View>
+  );
+
+  const DrawerMenu = () => (
+    <Modal
+      visible={drawerVisible}
+      transparent={true}
+      animationType="none"
+      onRequestClose={() => setDrawerVisible(false)}
+    >
+      <View style={styles.drawerOverlay}>
+        <TouchableOpacity 
+          style={styles.drawerBackdrop}
+          activeOpacity={1}
+          onPress={() => setDrawerVisible(false)}
+        />
+        <View style={styles.drawerContainer}>
+          <View style={styles.drawerHeader}>
+            <Text style={styles.drawerTitle}>Menu</Text>
+            <TouchableOpacity onPress={() => setDrawerVisible(false)}>
+              <Ionicons name="close" size={24} color="#861f66" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.drawerContent}>
+            <TouchableOpacity style={styles.drawerItem}>
+              <Ionicons name="settings-outline" size={20} color="#861f66" />
+              <Text style={styles.drawerItemText}>Configurações</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.drawerItem}>
+              <Ionicons name="help-circle-outline" size={20} color="#861f66" />
+              <Text style={styles.drawerItemText}>Ajuda</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.drawerItem}>
+              <Ionicons name="information-circle-outline" size={20} color="#861f66" />
+              <Text style={styles.drawerItemText}>Sobre</Text>
+            </TouchableOpacity>
+
+            <View style={styles.drawerDivider} />
+
+            <TouchableOpacity style={styles.drawerItem} onPress={handleLogout}>
+              <Ionicons name="log-out-outline" size={20} color="#d32f2f" />
+              <Text style={[styles.drawerItemText, { color: '#d32f2f' }]}>Sair da Conta</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
 
   return (
