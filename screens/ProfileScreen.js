@@ -8,7 +8,9 @@ import {
   FlatList,
   Image,
   Dimensions,
+  Modal,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { signOut } from 'firebase/auth';
 import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../firebase.config';
@@ -21,6 +23,7 @@ export default function ProfileScreen() {
   const { user } = useAuth();
   const [userPosts, setUserPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [drawerVisible, setDrawerVisible] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -45,6 +48,7 @@ export default function ProfileScreen() {
   }, [user]);
 
   const handleLogout = () => {
+    setDrawerVisible(false); // Fecha o drawer primeiro
     Alert.alert(
       'Sair da conta',
       'Tem certeza que deseja sair da sua conta?',
@@ -58,14 +62,21 @@ export default function ProfileScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
+              console.log('Tentando fazer logout...');
               await signOut(auth);
+              console.log('Logout realizado com sucesso');
             } catch (error) {
-              Alert.alert('Erro', 'Falha ao sair da conta');
+              console.error('Erro no logout:', error);
+              Alert.alert('Erro', 'Falha ao sair da conta: ' + error.message);
             }
           },
         },
       ]
     );
+  };
+
+  const toggleDrawer = () => {
+    setDrawerVisible(!drawerVisible);
   };
 
   const renderPost = ({ item }) => (
@@ -89,11 +100,11 @@ export default function ProfileScreen() {
             {userPosts.length} {userPosts.length === 1 ? 'publicação' : 'publicações'}
           </Text>
         </View>
-      </View>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>Sair da Conta</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.drawerButton} onPress={toggleDrawer}>
+          <Ionicons name="menu" size={24} color="#861f66" />
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.divider} />
       
@@ -106,6 +117,55 @@ export default function ProfileScreen() {
       <Text style={styles.emptyText}>Você ainda não fez nenhuma publicação</Text>
       <Text style={styles.emptySubtext}>Suas fotos aparecerão aqui</Text>
     </View>
+  );
+
+  const DrawerMenu = () => (
+    <Modal
+      visible={drawerVisible}
+      transparent={true}
+      animationType="none"
+      onRequestClose={() => setDrawerVisible(false)}
+    >
+      <View style={styles.drawerOverlay}>
+        <TouchableOpacity 
+          style={styles.drawerBackdrop}
+          activeOpacity={1}
+          onPress={() => setDrawerVisible(false)}
+        />
+        <View style={styles.drawerContainer}>
+          <View style={styles.drawerHeader}>
+            <Text style={styles.drawerTitle}>Menu</Text>
+            <TouchableOpacity onPress={() => setDrawerVisible(false)}>
+              <Ionicons name="close" size={24} color="#861f66" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.drawerContent}>
+            <TouchableOpacity style={styles.drawerItem}>
+              <Ionicons name="settings-outline" size={20} color="#861f66" />
+              <Text style={styles.drawerItemText}>Configurações</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.drawerItem}>
+              <Ionicons name="help-circle-outline" size={20} color="#861f66" />
+              <Text style={styles.drawerItemText}>Ajuda</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.drawerItem}>
+              <Ionicons name="information-circle-outline" size={20} color="#861f66" />
+              <Text style={styles.drawerItemText}>Sobre</Text>
+            </TouchableOpacity>
+
+            <View style={styles.drawerDivider} />
+
+            <TouchableOpacity style={styles.drawerItem} onPress={handleLogout}>
+              <Ionicons name="log-out-outline" size={20} color="#d32f2f" />
+              <Text style={[styles.drawerItemText, { color: '#d32f2f' }]}>Sair da Conta</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
 
   return (
@@ -126,6 +186,9 @@ export default function ProfileScreen() {
         contentContainerStyle={styles.listContainer}
         columnWrapperStyle={userPosts.length > 0 ? styles.row : null}
       />
+
+      {/* Drawer Menu */}
+      <DrawerMenu />
     </View>
   );
 }
@@ -189,18 +252,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
-  logoutButton: {
+  drawerButton: {
+    padding: 8,
+    borderRadius: 20,
     backgroundColor: '#f8ad98',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  logoutButtonText: {
-    color: '#861f66',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   divider: {
     height: 1,
@@ -241,5 +296,57 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     textAlign: 'center',
+  },
+  // Estilos do Drawer
+  drawerOverlay: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  drawerBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  drawerContainer: {
+    backgroundColor: '#fff',
+    width: 280,
+    height: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: -2, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  drawerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  drawerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#861f66',
+  },
+  drawerContent: {
+    padding: 20,
+  },
+  drawerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+  },
+  drawerItemText: {
+    fontSize: 16,
+    color: '#861f66',
+    marginLeft: 15,
+    fontWeight: '500',
+  },
+  drawerDivider: {
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    marginVertical: 10,
   },
 });
