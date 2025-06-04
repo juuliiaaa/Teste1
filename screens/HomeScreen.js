@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, FlatList, Image, StyleSheet, Pressable, Text } from "react-native";
+import {
+  View,
+  FlatList,
+  Image,
+  StyleSheet,
+  Pressable,
+  Text,
+} from "react-native";
 import { db } from "../firebase.config";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 
@@ -28,18 +35,18 @@ const HomeScreen = ({ navigation }) => {
       <View style={styles.postHeader}>
         <Text style={styles.userEmail}>{item.userEmail}</Text>
       </View>
-      
+
       <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
-      
+
       {item.caption && (
         <View style={styles.captionContainer}>
           <Text style={styles.captionText}>{item.caption}</Text>
         </View>
       )}
-      
+
       <View style={styles.postFooter}>
         <Text style={styles.timeText}>
-          {item.createdAt?.toDate?.()?.toLocaleDateString('pt-BR') || 'Agora'}
+          {item.createdAt?.toDate?.()?.toLocaleDateString("pt-BR") || "Agora"}
         </Text>
       </View>
     </View>
@@ -49,7 +56,9 @@ const HomeScreen = ({ navigation }) => {
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyIcon}>📸</Text>
       <Text style={styles.emptyTitle}>Nenhuma postagem ainda</Text>
-      <Text style={styles.emptyText}>Seja o primeiro a compartilhar uma foto!</Text>
+      <Text style={styles.emptyText}>
+        Seja o primeiro a compartilhar uma foto!
+      </Text>
     </View>
   );
 

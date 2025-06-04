@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,14 +9,22 @@ import {
   Image,
   Dimensions,
   Modal,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { signOut } from 'firebase/auth';
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
-import { auth, db } from '../firebase.config';
-import { useAuth } from '../context/auth/useAuth';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { signOut } from "firebase/auth";
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+} from "firebase/firestore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import { auth, db } from "../firebase.config";
+import { useAuth } from "../context/auth/useAuth";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 const imageSize = (width - 40) / 3 - 10;
 
 export default function ProfileScreen() {
@@ -24,52 +32,57 @@ export default function ProfileScreen() {
   const [userPosts, setUserPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [drawerVisible, setDrawerVisible] = useState(false);
+  const navigation = useNavigation();
 
   useEffect(() => {
     if (!user) return;
 
-    const postsRef = collection(db, 'posts');
+    const postsRef = collection(db, "posts");
     const q = query(
       postsRef,
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where("userId", "==", user.uid),
+      orderBy("createdAt", "desc")
     );
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const postsList = [];
-      querySnapshot.forEach((doc) => {
-        postsList.push({ id: doc.id, ...doc.data() });
-      });
-      setUserPosts(postsList);
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const posts = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setUserPosts(posts);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error in snapshot listener:", error);
+      }
+    );
 
     return () => unsubscribe();
   }, [user]);
 
   const handleLogout = () => {
-    Alert.alert(
-      'Sair da conta',
-      'Tem certeza que deseja sair da sua conta?',
-      [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
+    Alert.alert("Sair da conta", "Tem certeza que deseja sair da sua conta?", [
+      {
+        text: "Cancelar",
+        style: "cancel",
+      },
+      {
+        text: "Sair",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await signOut(auth);
+            await AsyncStorage.removeItem("userToken");
+            setDrawerVisible(false);
+            navigation.replace("Login");
+          } catch (error) {
+            Alert.alert("Erro", "Falha ao sair da conta");
+          }
         },
-        {
-          text: 'Sair',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await signOut(auth);
-              setDrawerVisible(false);
-            } catch (error) {
-              Alert.alert('Erro', 'Falha ao sair da conta');
-            }
-          },
-        },
-      ]
-    );
+      },
+    ]);
   };
 
   const toggleDrawer = () => {
@@ -87,14 +100,15 @@ export default function ProfileScreen() {
       <View style={styles.profileInfo}>
         <View style={styles.avatarContainer}>
           <Text style={styles.avatarText}>
-            {user?.email?.charAt(0).toUpperCase() || '?'}
+            {user?.email?.charAt(0).toUpperCase() || "?"}
           </Text>
         </View>
-        
+
         <View style={styles.userInfo}>
           <Text style={styles.userName}>{user?.email}</Text>
           <Text style={styles.userStats}>
-            {userPosts.length} {userPosts.length === 1 ? 'publicação' : 'publicações'}
+            {userPosts.length}{" "}
+            {userPosts.length === 1 ? "publicação" : "publicações"}
           </Text>
         </View>
 
@@ -104,14 +118,16 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.divider} />
-      
+
       <Text style={styles.sectionTitle}>Suas Publicações</Text>
     </View>
   );
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyText}>Você ainda não fez nenhuma publicação</Text>
+      <Text style={styles.emptyText}>
+        Você ainda não fez nenhuma publicação
+      </Text>
       <Text style={styles.emptySubtext}>Suas fotos aparecerão aqui</Text>
     </View>
   );
@@ -124,7 +140,7 @@ export default function ProfileScreen() {
       onRequestClose={() => setDrawerVisible(false)}
     >
       <View style={styles.drawerOverlay}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.drawerBackdrop}
           activeOpacity={1}
           onPress={() => setDrawerVisible(false)}
@@ -149,7 +165,11 @@ export default function ProfileScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.drawerItem}>
-              <Ionicons name="information-circle-outline" size={20} color="#861f66" />
+              <Ionicons
+                name="information-circle-outline"
+                size={20}
+                color="#861f66"
+              />
               <Text style={styles.drawerItemText}>Sobre</Text>
             </TouchableOpacity>
 
@@ -157,7 +177,9 @@ export default function ProfileScreen() {
 
             <TouchableOpacity style={styles.drawerItem} onPress={handleLogout}>
               <Ionicons name="log-out-outline" size={20} color="#d32f2f" />
-              <Text style={[styles.drawerItemText, { color: '#d32f2f' }]}>Sair da Conta</Text>
+              <Text style={[styles.drawerItemText, { color: "#d32f2f" }]}>
+                Sair da Conta
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -167,12 +189,10 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Perfil</Text>
       </View>
 
-      {/* Conteúdo */}
       <FlatList
         data={userPosts}
         renderItem={renderPost}
@@ -184,7 +204,6 @@ export default function ProfileScreen() {
         columnWrapperStyle={userPosts.length > 0 ? styles.row : null}
       />
 
-      {/* Drawer Menu */}
       <DrawerMenu />
     </View>
   );
@@ -193,14 +212,14 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   header: {
-    backgroundColor: '#861f66',
+    backgroundColor: "#861f66",
     paddingVertical: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -208,8 +227,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: "bold",
+    color: "#fff",
   },
   listContainer: {
     paddingBottom: 20,
@@ -218,55 +237,55 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   profileInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 20,
   },
   avatarContainer: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#861f66',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#861f66",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 15,
   },
   avatarText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   userInfo: {
     flex: 1,
   },
   userName: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#861f66',
+    fontWeight: "bold",
+    color: "#861f66",
     marginBottom: 5,
   },
   userStats: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   drawerButton: {
     padding: 8,
     borderRadius: 20,
-    backgroundColor: '#f8ad98',
+    backgroundColor: "#f8ad98",
   },
   divider: {
     height: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: "#e0e0e0",
     marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#861f66',
+    fontWeight: "bold",
+    color: "#861f66",
     marginBottom: 15,
   },
   row: {
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
     paddingHorizontal: 20,
   },
   postItem: {
@@ -276,74 +295,74 @@ const styles = StyleSheet.create({
     width: imageSize,
     height: imageSize,
     borderRadius: 8,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
   },
   emptyContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 50,
     paddingHorizontal: 20,
   },
   emptyText: {
     fontSize: 16,
-    color: '#861f66',
-    fontWeight: 'bold',
+    color: "#861f66",
+    fontWeight: "bold",
     marginBottom: 10,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
   },
   // Estilos do Drawer
   drawerOverlay: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   drawerBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   drawerContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     width: 280,
-    height: '100%',
-    shadowColor: '#000',
+    height: "100%",
+    shadowColor: "#000",
     shadowOffset: { width: -2, height: 0 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
   },
   drawerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: "#e0e0e0",
   },
   drawerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#861f66',
+    fontWeight: "bold",
+    color: "#861f66",
   },
   drawerContent: {
     padding: 20,
   },
   drawerItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 15,
     paddingHorizontal: 10,
   },
   drawerItemText: {
     fontSize: 16,
-    color: '#861f66',
+    color: "#861f66",
     marginLeft: 15,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   drawerDivider: {
     height: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: "#e0e0e0",
     marginVertical: 10,
   },
 });
